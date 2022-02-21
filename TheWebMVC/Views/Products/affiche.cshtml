@@ -1,0 +1,8 @@
+﻿@model List<Contact>
+
+<ol>
+    @foreach(var item in Model)
+            {
+                <li>@string.Format("{0} , {1} , {2} , {3}",item.full_name,item.Email, item.Business_phone,item.password) </li>
+            }
+</ol>

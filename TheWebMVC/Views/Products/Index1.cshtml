@@ -1,0 +1,11 @@
+﻿@model TheWebMVC.Models.Contact
+
+@using (Html.BeginForm("Index", "Products", FormMethod.Post))
+{
+    @Html.LabelFor(Model => Model.Email)
+    @Html.EditorFor(Model => Model.Email)
+    @Html.LabelFor(Model => Model.password)
+    @Html.EditorFor(Model => Model.password)
+
+    <input type="submit" value="Create" />
+}
