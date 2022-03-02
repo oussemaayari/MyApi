@@ -15,8 +15,20 @@ namespace TheWebMVC.Controllers
         [HttpPost]
         public ActionResult Index(Contact contact)
         {
-            var products = GetEntitiesFromApi();
-            return View(products); 
+            var records = GetEntitiesFromApi();
+            foreach(var elemet in records)
+            {
+                if (elemet.Email == contact.Email && elemet.password == contact.password)
+                {
+                    return RedirectToAction("Dashbord");
+                }
+                
+              
+                
+            }
+            return View();
+
+
         }
         public ActionResult Index1()
         {
