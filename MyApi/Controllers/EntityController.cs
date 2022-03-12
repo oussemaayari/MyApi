@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Tooling.Connector;
 using MyApi.Data;
@@ -31,7 +32,8 @@ namespace MyApi.Controllers
         {
            if (ConnectToCRm())
             {
-                GetAllContacts();
+               // GetAllContacts();
+                GetAllCases();
                
 
             }
@@ -43,6 +45,47 @@ namespace MyApi.Controllers
 
         }
 
+        private DataCollection<Entity> GetAllCases()
+        {
+             QueryExpression query = new QueryExpression();
+
+            //Query on reated entity records
+            query.EntityName = "incident";
+
+            //Retrieve the all attributes of the related record
+            query.ColumnSet = new ColumnSet(true);
+
+            //create the relationship object
+            Relationship relationship = new Relationship();
+
+            //add the condition where you can retrieve only the account related active contacts
+            query.Criteria = new FilterExpression();
+            query.Criteria.AddCondition(new ConditionExpression("statecode", ConditionOperator.Equal, "Active"));
+
+            // name of relationship between account & contact
+            relationship.SchemaName = "incident_customer_accounts";
+
+            //create relationshipQueryCollection Object
+            RelationshipQueryCollection relatedEntity = new RelationshipQueryCollection();
+
+            //Add the your relation and query to the RelationshipQueryCollection
+            relatedEntity.Add(relationship, query);
+
+            //create the retrieve request object
+            RetrieveRequest request = new RetrieveRequest();
+
+            //add the relatedentities query
+            request.RelatedEntitiesQuery = relatedEntity;
+
+            //set column to  and the condition for the account 
+            request.ColumnSet = new ColumnSet("accountid");
+            var id = Guid.Parse("dbdd0b93-4a1b-4848-b83a-39352f6b2e7a");
+            request.Target = new EntityReference { Id = id, LogicalName = "account" };
+
+            RetrieveResponse response = (RetrieveResponse)service.Execute(request);
+           return  ((DataCollection<Relationship, EntityCollection>)(((RelatedEntityCollection)(response.Entity.RelatedEntities))))[new Relationship("incident_customer_accounts")].Entities;
+        }
+
         private void GetError()
         {
            
@@ -52,10 +95,11 @@ namespace MyApi.Controllers
         {
             try
             {
-                var connectionString = @"AuthType = Office365; 
-                            Url =https://orgcacc7db5.crm4.dynamics.com;
-                            Username=ayari@isamm.u-manouba.tn;
-                            Password=XgtS?%RTNj";
+
+                var connectionString = @" AuthType = Office365;              
+                Url = https://orgcde5f393.crm4.dynamics.com;
+                    Username=Saif.Hazemi@isamm.u-manouba.tn;
+                    Password=g'lmaram9782536A";
                 CrmServiceClient conn = new CrmServiceClient(connectionString);
                  service = (IOrganizationService)conn.
                   OrganizationWebProxyClient != null ? (IOrganizationService)conn.OrganizationWebProxyClient : (IOrganizationService)conn.OrganizationServiceProxy;
@@ -111,13 +155,75 @@ namespace MyApi.Controllers
         }
 
 
-        public List<Contact> Get() { 
+        public DataCollection<Entity> Get() {
+            QueryExpression query = new QueryExpression();
+
+            //Query on reated entity records
+            query.EntityName = "incident";
+
+            //Retrieve the all attributes of the related record
+            query.ColumnSet = new ColumnSet("title","incidentid");
+
+            //create the relationship object
+            Relationship relationship = new Relationship();
+
+            //add the condition where you can retrieve only the account related active contacts
+            query.Criteria = new FilterExpression();
+            query.Criteria.AddCondition(new ConditionExpression("statecode", ConditionOperator.Equal, "Active"));
+
+            // name of relationship between account & contact
+            relationship.SchemaName = "incident_customer_accounts";
+
+            //create relationshipQueryCollection Object
+            RelationshipQueryCollection relatedEntity = new RelationshipQueryCollection();
+
+            //Add the your relation and query to the RelationshipQueryCollection
+            relatedEntity.Add(relationship, query);
+
+            //create the retrieve request object
+            RetrieveRequest request = new RetrieveRequest();
+
+            //add the relatedentities query
+            request.RelatedEntitiesQuery = relatedEntity;
+
+            //set column to  and the condition for the account 
+            request.ColumnSet = new ColumnSet("accountid");
+            var id = Guid.Parse("dbdd0b93-4a1b-4848-b83a-39352f6b2e7a");
+            request.Target = new EntityReference { Id = id, LogicalName = "account" };
+
+            RetrieveResponse response = (RetrieveResponse)service.Execute(request);
+            return ((DataCollection<Relationship, EntityCollection>)(((RelatedEntityCollection)(response.Entity.RelatedEntities))))[new Relationship("incident_customer_accounts")].Entities;
 
 
-            return contacts;
 
         }
-        
+
+        [System.Web.Http.AcceptVerbs("GET", "POST")]
+        [System.Web.Http.HttpGet]
+        public Boolean addCase()
+        {
+            Entity newCase = new Entity("incident");
+            newCase["title"] ="test" ;
+           // newCase["customerid"] = Guid.Parse("dbdd0b93-4a1b-4848-b83a-39352f6b2e7a");
+           // newCase["subjectid"] = "test subj";
+            newCase["ownerid"] = Guid.Parse("288c5327-d484-ec11-8d21-000d3ab5003d");
+            
+            if (service.Create(newCase) !=  null)
+            {
+                return true;
+
+            }
+            else
+            {
+                return false;
+            }
+
+
+      
+           
+
+        }
+
         private EntityCollection GetAllContacts()
         {
           
@@ -177,6 +283,8 @@ namespace MyApi.Controllers
             return contacts;
 
         }
+
+
         [System.Web.Http.AcceptVerbs("GET", "POST")]
         [System.Web.Http.HttpGet]
         public IEnumerable<Contact> Update(Guid id)
